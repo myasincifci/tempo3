@@ -23,12 +23,12 @@ def video_dataset(batch_size=80, proximity=30, pdf=None, num_workers=4):
 
     return dataloader
 
-def video_dataset_h5(batch_size=80, proximity=30, pdf=None, num_workers=4):
+def video_dataset_h5(path: str, batch_size=80, proximity=30, pdf=None, num_workers=4):
     """
     Creates dataloader for tempo ss-training.
     """
 
-    dataset = VideoDatasetH5('./datasets/ASL-big/frames.hdf5',
+    dataset = VideoDatasetH5(path,
                            transform=None, proximity=proximity, pdf=pdf)
     dataloader = DataLoader(dataset, batch_size=batch_size,
                             shuffle=True, drop_last=False, num_workers=num_workers)

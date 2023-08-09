@@ -13,3 +13,4 @@ Training time: 79.62922477722168s # 4 workers
 Training time: 80.62211394309998s # 8 workers
 
 Training time: 71.92430591583252s
+Training time: 68.30426239967346s
