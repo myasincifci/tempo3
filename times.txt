@@ -1,0 +1,15 @@
+-----------Compile----------------
+Training time: 41.461320638656616s
+Training time: 40.90698194503784s
+Training time: 41.011353492736816s
+Training time: 40.48446702957153s
+
+Training time: 73.84442234039307s
+
+Training time: 74.01619863510132s
+
+-------------Data-----------------
+Training time: 79.62922477722168s # 4 workers
+Training time: 80.62211394309998s # 8 workers
+
+Training time: 71.92430591583252s
