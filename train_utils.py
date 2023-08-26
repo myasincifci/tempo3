@@ -5,6 +5,8 @@ from lightly.loss import BarlowTwinsLoss, NTXentLoss, SwaVLoss,SymNegCosineSimil
 from mlflow import log_metric
 from tqdm import tqdm
 
+from sklearn.svm import SVC
+
 
 @torch.no_grad()
 def eval(model: torch.nn.Module, criterion, test_loader, device):
@@ -44,6 +46,40 @@ def test_model(model, test_reps, test_dataset, device):
     model.train()
 
     return 1.0 - (wrongly_classified / len(test_dataset))
+
+def linear_svm(model: torch.nn.Module, train_loader, test_loader, device):
+    model.eval()
+
+    X_train, T_train = [], []
+    X_test , T_test  = [], []
+    with torch.no_grad():
+        for input, label in train_loader:
+            repr = model.backbone(input.to(device)).detach()
+            repr = torch.flatten(repr, start_dim=1)
+            
+            X_train.append(repr.cpu())
+            T_train.append(label.cpu())
+
+        for input, label in test_loader:
+            repr = model.backbone(input.to(device)).detach()
+            repr = torch.flatten(repr, start_dim=1)
+            
+            X_test.append(repr.cpu())
+            T_test.append(label.cpu())
+
+    X_train = torch.cat(X_train, dim=0).detach().numpy()
+    T_train = torch.cat(T_train, dim=0).detach().numpy()
+
+    X_test = torch.cat(X_test, dim=0).detach().numpy()
+    T_test = torch.cat(T_test, dim=0).detach().numpy()
+
+    clf = SVC(gamma="auto")
+    clf.fit(X_train, T_train)
+    
+    Y_test = clf.predict(X_test)
+
+    return (Y_test == T_test).sum() / len(T_test)
+
 
 def linear_eval(model: torch.nn.Module, train_loader, test_loader, device):
     model.eval()
@@ -122,8 +158,11 @@ def train(model: torch.nn.Module, epochs, lr, l, train_loader, test_loader, trai
         # test_loss = eval(model, criterion, test_loader, device)
         # log_metric("test_loss", test_loss, epoch)
 
-        eval_loss = linear_eval(model, train_loader_ft, test_loader_ft, device)
-        log_metric("test_loss", eval_loss, epoch)
+        # linear_accuracy = linear_eval(model, train_loader_ft, test_loader_ft, device)
+        # log_metric("linear_accuracy", linear_accuracy, epoch)
+        
+        svm_accuracy = linear_svm(model, train_loader_ft, test_loader_ft, device)
+        log_metric("svm_accuracy", svm_accuracy, epoch)
         # scheduler.step()
 
     return model.backbone.state_dict()
